@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-debian:8
+FROM openjdk:8u92-jre-alpine
 
 WORKDIR /activemq
 
@@ -8,14 +8,17 @@ ENV ACTIVEMQ_URL=https://www.apache.org/dist/activemq/$ACTIVEMQ_VERSION/apache-a
 ENV DUMB_INIT_VERSION=1.2.0
 ENV GOSU_VERSION=1.10
 
-RUN adduser --no-create-home --disabled-login --system --disabled-password --group -q activemq
+RUN addgroup activemq && \
+    adduser -S -G activemq activemq
 
 RUN set -ex && \
   # update packages, install curl and cleanup
-  apt-get update && \
-  apt-get -y --no-install-recommends install \
-    ca-certificates \
-    curl && \
+  apk update && \
+  apk add --no-cache --update \
+    curl \
+    gnupg \
+    su-exec \
+    tar && \
 \
 # install activemq
   curl --progress-bar $ACTIVEMQ_URL -o activemq.tar.gz && \
@@ -26,27 +29,17 @@ RUN set -ex && \
   rm activemq.tar.gz* && \
 \
 # install dumb-init
-  curl --progress-bar -OL https://github.com/Yelp/dumb-init/releases/download/v$DUMB_INIT_VERSION/dumb-init_{$DUMB_INIT_VERSION}_amd64.deb && \
+  curl --progress-bar -OL https://github.com/Yelp/dumb-init/releases/download/v$DUMB_INIT_VERSION/dumb-init_${DUMB_INIT_VERSION}_amd64 && \
   curl --progress-bar -OL https://github.com/Yelp/dumb-init/releases/download/v$DUMB_INIT_VERSION/sha256sums && \
-  head -n 1 sha256sums | sha256sum -c && \
-  dpkg -i dumb-init_*.deb && \
-  rm sha256sums dumb-init_*.deb && \
-\
-# install Gosu
-  curl --progress-bar -LO https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64 && \
-  curl --progress-bar -LO https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64.asc && \
-  gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
-  gpg --verify gosu-amd64.asc && \
-  chmod +x gosu-amd64 && \
-  mv gosu-amd64 /usr/local/bin/gosu && \
-  rm gosu-amd64.asc && \
-  apt-get clean && \
-  apt-get purge -y --auto-remove ca-certificates curl && \
-  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+  sed -n 2p sha256sums | sha256sum -c && \
+  mv dumb-init_${DUMB_INIT_VERSION}_amd64 /usr/local/bin/dumb-init && \
+  chmod +x /usr/local/bin/dumb-init && \
+  apk del curl gnupg && \
+  rm -rf /var/cache/apk/* && \
   chown activemq:activemq . -R
 
 EXPOSE 1883 5672 8161 61613 61614 61616
 
-ENTRYPOINT ["dumb-init", "--", "gosu", "activemq", "bin/activemq"]
+ENTRYPOINT ["dumb-init", "--", "su-exec", "activemq", "bin/activemq"]
 
 CMD ["console"]
