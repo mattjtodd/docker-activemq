@@ -1,4 +1,4 @@
-FROM openjdk:8u92-jre-alpine
+FROM alpine:3.4
 
 WORKDIR /activemq
 
@@ -14,9 +14,10 @@ RUN addgroup activemq && \
 RUN set -ex && \
   # update packages, install curl and cleanup
   apk update && \
-  apk add --no-cache --update \
+  apk add --no-cache --update --repository http://dl-3.alpinelinux.org/alpine/edge/community/ \
     curl \
     gnupg \
+    openjdk8-jre \
     su-exec \
     tar && \
 \
