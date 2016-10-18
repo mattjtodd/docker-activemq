@@ -7,17 +7,18 @@ ENV ACTIVEMQ_URL=https://www.apache.org/dist/activemq/$ACTIVEMQ_VERSION/apache-a
 
 ENV DUMB_INIT_VERSION=1.2.0
 ENV GOSU_VERSION=1.10
+ENV JAVA8_VERSION=8.101.13-r1
 
 RUN addgroup activemq && \
     adduser -S -G activemq activemq
 
 RUN set -ex && \
-  # update packages, install curl and cleanup
+# update and install packages
   apk update && \
   apk add --no-cache --update --repository http://dl-3.alpinelinux.org/alpine/edge/community/ \
     curl \
     gnupg \
-    openjdk8-jre \
+    openjdk8-jre=${JAVA8_VERSION} \
     su-exec \
     tar && \
 \
