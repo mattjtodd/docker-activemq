@@ -9,6 +9,7 @@ ENV DUMB_INIT_VERSION=1.2.0
 ENV GOSU_VERSION=1.10
 ENV JAVA8_VERSION=8.101.13-r1
 
+# su-exec user
 RUN addgroup activemq && \
     adduser -S -G activemq activemq
 
