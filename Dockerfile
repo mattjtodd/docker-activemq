@@ -7,7 +7,7 @@ ENV ACTIVEMQ_URL=https://www.apache.org/dist/activemq/$ACTIVEMQ_VERSION/apache-a
 
 ENV DUMB_INIT_VERSION=1.2.0
 ENV GOSU_VERSION=1.10
-ENV JAVA8_VERSION=8.101.13-r1
+ENV JAVA8_VERSION=8.121.13-r0
 
 # su-exec user
 RUN addgroup activemq && \
